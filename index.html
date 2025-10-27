@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manajer Tugas Kuliah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      input[type="date"]:before {
+        content: attr(placeholder) !important;
+        color: #9ca3af;
+        margin-right: 0.5em;
+      }
+      input[type="date"]:focus:before,
+      input[type="date"]:valid:before {
+        content: "";
+      }
+      input[type="time"]:before {
+        content: attr(placeholder) !important;
+        color: #9ca3af;
+        margin-right: 0.5em;
+      }
+      input[type="time"]:focus:before,
+      input[type="time"]:valid:before {
+        content: "";
+      }
+    </style>
+  </head>
+  <body
+    class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white font-sans antialiased transition-colors duration-300"
+  >
+    <div class="container max-w-3xl mx-auto p-4 sm:p-8">
+      <header class="text-center mb-8 relative">
+        <h1 class="text-4xl font-bold text-blue-500 dark:text-blue-400">
+          ⌛ Deadline Keeper
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-300 mt-2">
+          Kerjain woy, biar ga lupa! :)
+        </p>
+
+        <button
+          id="theme-toggle"
+          class="absolute top-0 right-0 p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          title="Ganti Tema"
+        >
+          <svg
+            id="theme-icon-moon"
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            ></path>
+          </svg>
+          <!-- Ikon Matahari (Mode Gelap) -->
+          <svg
+            id="theme-icon-sun"
+            class="w-6 h-6 hidden"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 12a4 4 0 11-8 0 4 4 0 018 0z"
+            ></path>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Form Tambah Tugas Baru -->
+      <form
+        id="add-task-form"
+        class="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-xl mb-8"
+      >
+        <h2 class="text-2xl font-semibold mb-4">Tambah Tugas Baru</h2>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <!-- Input Nama Tugas -->
+          <div class="flex-grow">
+            <label for="task-input" class="sr-only">Nama Tugas</label>
+            <input
+              type="text"
+              id="task-input"
+              placeholder="Nama Tugas"
+              class="w-full p-3 rounded-md bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+              required
+            />
+          </div>
+          <!-- Input Tanggal Deadline -->
+          <div class="flex-grow sm:flex-grow-0">
+            <label for="deadline-date-input" class="sr-only"
+              >Tanggal Deadline</label
+            >
+            <input
+              type="date"
+              id="deadline-date-input"
+              placeholder="Tanggal"
+              class="w-full sm:w-auto p-3 rounded-md bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500 dark:text-gray-400"
+              title="Atur Tanggal Deadline (Opsional)"
+            />
+          </div>
+          <!-- Input Jam Deadline -->
+          <div class="flex-grow sm:flex-grow-0">
+            <label for="deadline-time-input" class="sr-only"
+              >Jam Deadline</label
+            >
+            <input
+              type="time"
+              id="deadline-time-input"
+              placeholder="Jam"
+              class="w-full sm:w-auto p-3 rounded-md bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500 dark:text-gray-400"
+              title="Atur Jam Deadline (Opsional)"
+            />
+          </div>
+          <!-- Tombol Tambah -->
+          <button
+            type="submit"
+            class="p-3 bg-blue-600 hover:bg-blue-700 rounded-md font-semibold text-white transition-colors shadow-md"
+          >
+            Tambah
+          </button>
+        </div>
+      </form>
+
+      <!-- Daftar Tugas -->
+      <main>
+        <!-- Kolom: Belum Dikerjakan -->
+        <section id="pending-tasks">
+          <h2
+            class="text-2xl font-semibold mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 text-yellow-600 dark:text-yellow-400"
+          >
+            Belum Dikerjakan
+          </h2>
+          <ul id="pending-list" class="space-y-4">
+            <!-- Tugas yang belum selesai akan muncul di sini -->
+          </ul>
+          <p
+            id="pending-empty"
+            class="text-gray-500 dark:text-gray-400 text-center py-4 hidden"
+          >
+            Yeay! Tidak ada tugas yang belum dikerjakan.
+          </p>
+        </section>
+
+        <!-- Kolom: Sudah Dikerjakan -->
+        <section id="completed-tasks" class="mt-12">
+          <h2
+            class="text-2xl font-semibold mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700 text-green-600 dark:text-green-400"
+          >
+            Sudah Dikerjakan
+          </h2>
+          <ul id="completed-list" class="space-y-4">
+            <!-- Tugas yang sudah selesai akan muncul di sini -->
+          </ul>
+          <p
+            id="completed-empty"
+            class="text-gray-500 dark:text-gray-400 text-center py-4 hidden"
+          >
+            Belum ada tugas yang selesai dikerjakan.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <!-- Footer Baru (Pojok Kiri Bawah) -->
+    <footer
+      class="fixed bottom-4 left-4 text-xs text-gray-400 dark:text-gray-500"
+    >
+      By Fiqri Albani
+    </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- Logika Theme Toggle ---
+        const themeToggleBtn = document.getElementById("theme-toggle");
+        const themeIconMoon = document.getElementById("theme-icon-moon");
+        const themeIconSun = document.getElementById("theme-icon-sun");
+        const htmlElement = document.documentElement;
+
+        // Fungsi untuk update ikon berdasarkan tema
+        function updateThemeIcons(isDarkMode) {
+          if (isDarkMode) {
+            themeIconMoon.classList.add("hidden");
+            themeIconSun.classList.remove("hidden");
+          } else {
+            themeIconMoon.classList.remove("hidden");
+            themeIconSun.classList.add("hidden");
+          }
+        }
+
+        // Memuat tema saat halaman dibuka
+        function loadTheme() {
+          const storedTheme = localStorage.getItem("theme");
+          // Cek juga preferensi sistem
+          const systemPrefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+          ).matches;
+
+          let isDark;
+          if (storedTheme === "dark") {
+            isDark = true;
+          } else if (storedTheme === "light") {
+            isDark = false;
+          } else {
+            // Jika tidak ada storage, gunakan preferensi sistem
+            isDark = systemPrefersDark;
+          }
+
+          if (isDark) {
+            htmlElement.classList.add("dark");
+          } else {
+            htmlElement.classList.remove("dark");
+          }
+          updateThemeIcons(isDark);
+        }
+
+        // Mengganti tema
+        function toggleTheme() {
+          // Toggle class 'dark' di elemen <html>
+          const isDark = htmlElement.classList.toggle("dark");
+          if (isDark) {
+            localStorage.setItem("theme", "dark");
+          } else {
+            localStorage.setItem("theme", "light");
+          }
+          updateThemeIcons(isDark);
+        }
+
+        themeToggleBtn.addEventListener("click", toggleTheme);
+        loadTheme(); // Panggil saat load
+        // --- Akhir Logika Theme Toggle ---
+
+        // --- Logika Manajer Tugas ---
+        const taskForm = document.getElementById("add-task-form");
+        const taskInput = document.getElementById("task-input");
+        const deadlineDateInput = document.getElementById(
+          "deadline-date-input"
+        );
+        const deadlineTimeInput = document.getElementById(
+          "deadline-time-input"
+        );
+        const pendingList = document.getElementById("pending-list");
+        const completedList = document.getElementById("completed-list");
+        const pendingEmpty = document.getElementById("pending-empty");
+        const completedEmpty = document.getElementById("completed-empty");
+
+        let tasks = [];
+
+        // Memuat tugas dari localStorage saat halaman dibuka
+        function loadTasks() {
+          const tasksJSON = localStorage.getItem("tasks");
+          tasks = tasksJSON ? JSON.parse(tasksJSON) : [];
+          renderTasks();
+        }
+
+        // Menyimpan tugas ke localStorage
+        function saveTasks() {
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        // Menambahkan tugas baru
+        function addTask(e) {
+          e.preventDefault();
+          const taskName = taskInput.value.trim();
+          const deadlineDate = deadlineDateInput.value;
+          const deadlineTime = deadlineTimeInput.value;
+
+          if (taskName === "") {
+            console.error("Nama tugas tidak boleh kosong");
+            return;
+          }
+
+          let deadline = null;
+          if (deadlineDate && deadlineTime) {
+            // Jika tanggal dan jam diisi
+            deadline = `${deadlineDate}T${deadlineTime}`;
+          } else if (deadlineDate) {
+            // Jika hanya tanggal diisi
+            deadline = deadlineDate;
+          }
+
+          const newTask = {
+            id: Date.now(),
+            name: taskName,
+            deadline: deadline,
+            completed: false,
+            completedAt: null,
+          };
+
+          tasks.push(newTask);
+
+          // Reset form
+          taskInput.value = "";
+          deadlineDateInput.value = "";
+          deadlineTimeInput.value = "";
+
+          saveTasks();
+          renderTasks();
+        }
+
+        // Menandai tugas (selesai / belum)
+        function toggleTaskComplete(id) {
+          const task = tasks.find((t) => t.id === id);
+          if (task) {
+            task.completed = !task.completed;
+
+            if (task.completed) {
+              // Jika ditandai selesai, catat waktunya
+              task.completedAt = new Date().toISOString();
+            } else {
+              // Jika dibatalkan, hapus waktunya
+              task.completedAt = null;
+            }
+
+            saveTasks();
+            renderTasks();
+          }
+        }
+
+        // Menghapus tugas
+        function deleteTask(id) {
+          tasks = tasks.filter((t) => t.id !== id);
+          saveTasks();
+          renderTasks();
+        }
+
+        // Fungsi untuk memformat tanggal
+        function formatDeadline(deadlineString) {
+          if (!deadlineString) {
+            return {
+              text: "Tidak ada deadline",
+              class: "text-gray-500 dark:text-gray-400",
+            };
+          }
+
+          const hasTime = deadlineString.includes("T");
+          const deadline = new Date(deadlineString);
+          const today = new Date(); // Waktu sekarang
+
+          let options = {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          };
+          let formattedDate = "";
+
+          if (hasTime) {
+            // Kasus 1: Tanggal dan Jam diisi
+            options.hour = "2-digit";
+            options.minute = "2-digit";
+            options.hour12 = false; // Gunakan format 24 jam
+            formattedDate = deadline.toLocaleString("id-ID", options);
+          } else {
+            // Kasus 2: Hanya Tanggal diisi
+            // Anggap deadline di akhir hari (23:59)
+            deadline.setHours(23, 59, 59, 999);
+            formattedDate = deadline.toLocaleDateString("id-ID", options);
+          }
+
+          if (deadline < today) {
+            return {
+              text: `TERLAMBAT (${formattedDate})`,
+              class: "text-red-500 dark:text-red-400 font-bold",
+            };
+          } else {
+            // Cek apakah kurang dari 24 jam lagi (jika ada jam)
+            const diffMs = deadline.getTime() - today.getTime();
+            const diffHours = diffMs / (1000 * 60 * 60);
+
+            if (hasTime && diffHours < 24) {
+              return {
+                text: `SEGERA (${formattedDate})`,
+                class: "text-yellow-500 dark:text-yellow-300 font-semibold",
+              };
+            }
+
+            // Cek apakah hari ini (jika hanya tanggal)
+            const isToday = deadline.toDateString() === today.toDateString();
+            if (!hasTime && isToday) {
+              return {
+                text: `Hari Ini (${formattedDate})`,
+                class: "text-yellow-500 dark:text-yellow-300 font-semibold",
+              };
+            }
+
+            return {
+              text: formattedDate,
+              class: "text-yellow-500 dark:text-yellow-300",
+            };
+          }
+        }
+
+        // Fungsi untuk memformat waktu selesai
+        function formatCompletionTime(isoString) {
+          if (!isoString) return "";
+          const date = new Date(isoString);
+          const options = {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          };
+          return `Selesai: ${date.toLocaleString("id-ID", options)}`;
+        }
+
+        // Membuat elemen LI untuk tugas
+        function createTaskElement(task) {
+          const li = document.createElement("li");
+          // Menambahkan 'shadow-md' untuk mode terang
+          li.className = `bg-white dark:bg-gray-800 shadow-md p-4 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between transition-all duration-300 ${
+            task.completed ? "opacity-60" : ""
+          }`;
+          li.setAttribute("data-id", task.id);
+
+          const deadlineInfo = formatDeadline(task.deadline);
+          let secondaryText = "";
+
+          if (task.completed && task.completedAt) {
+            // Jika sudah selesai, tampilkan waktu selesai
+            const completionTime = formatCompletionTime(task.completedAt);
+            secondaryText = `<p class="text-sm text-green-600 dark:text-green-300">${completionTime}</p>`;
+          } else if (!task.completed) {
+            // Jika belum selesai, tampilkan deadline
+            secondaryText = `<p class="text-sm ${deadlineInfo.class}">${deadlineInfo.text}</p>`;
+          }
+
+          // Ini adalah template literal yang LENGKAP dan BENAR
+          let contentHTML = `
+                    <div class="flex-grow mb-3 sm:mb-0">
+                        <p class="font-semibold text-lg ${
+                          task.completed
+                            ? "line-through text-gray-500 dark:text-gray-400"
+                            : ""
+                        }">${task.name}</p>
+                        ${secondaryText}
+                    </div>
+                    <div class="flex-shrink-0 flex gap-2 w-full sm:w-auto">
+                        ${
+                          task.completed
+                            ? `
+                        <button class="undo-btn w-1/2 sm:w-auto text-xs py-2 px-3 rounded-full bg-yellow-600 hover:bg-yellow-700 font-medium transition-colors">
+                            Batal
+                        </button>
+                        `
+                            : `
+                        <button class="complete-btn w-1/2 sm:w-auto text-xs py-2 px-3 rounded-full bg-green-600 hover:bg-green-700 font-medium transition-colors">
+                            Selesai
+                        </button>
+                        `
+                        }
+                        <button class="delete-btn w-1/2 sm:w-auto text-xs py-2 px-3 rounded-full bg-red-600 hover:bg-red-700 font-medium transition-colors">
+                            Hapus
+                        </button>
+                    </div>
+                `;
+
+          li.innerHTML = contentHTML;
+
+          // Tambah Event Listeners untuk tombol
+          li.querySelector(".delete-btn").addEventListener("click", () =>
+            deleteTask(task.id)
+          );
+
+          if (task.completed) {
+            li.querySelector(".undo-btn").addEventListener("click", () =>
+              toggleTaskComplete(task.id)
+            );
+          } else {
+            li.querySelector(".complete-btn").addEventListener("click", () =>
+              toggleTaskComplete(task.id)
+            );
+          }
+
+          return li;
+        }
+
+        // Merender semua tugas ke daftar yang sesuai
+        function renderTasks() {
+          // Bersihkan daftar
+          pendingList.innerHTML = "";
+          completedList.innerHTML = "";
+
+          // Pisahkan tugas
+          const pending = tasks.filter((t) => !t.completed);
+          const completed = tasks.filter((t) => t.completed);
+
+          // Urutkan tugas belum selesai: deadline terdekat dulu, lalu yang tidak ada deadline
+          pending.sort((a, b) => {
+            const aDeadline = a.deadline ? new Date(a.deadline) : null;
+            const bDeadline = b.deadline ? new Date(b.deadline) : null;
+
+            // Atur deadline "hanya tanggal" ke akhir hari untuk perbandingan
+            if (aDeadline && !a.deadline.includes("T")) {
+              aDeadline.setHours(23, 59, 59, 999);
+            }
+            if (bDeadline && !b.deadline.includes("T")) {
+              bDeadline.setHours(23, 59, 59, 999);
+            }
+
+            if (aDeadline && !bDeadline) return -1; // a punya deadline, b tidak
+            if (!aDeadline && bDeadline) return 1; // b punya deadline, a tidak
+            if (aDeadline && bDeadline) {
+              return aDeadline - bDeadline; // Urutkan berdasarkan deadline terdekat
+            }
+            return 0; // Keduanya tidak punya deadline
+          });
+
+          // Urutkan tugas selesai: yang terbaru diselesaikan dulu
+          completed.sort((a, b) => {
+            // Gunakan waktu selesai (completedAt) jika ada, jika tidak, gunakan id
+            const aTime = a.completedAt
+              ? new Date(a.completedAt).getTime()
+              : b.id;
+            const bTime = b.completedAt
+              ? new Date(b.completedAt).getTime()
+              : a.id;
+            return bTime - aTime;
+          });
+
+          // Tampilkan pesan jika kosong
+          pendingEmpty.classList.toggle("hidden", pending.length > 0);
+          completedEmpty.classList.toggle("hidden", completed.length > 0);
+
+          // Render setiap tugas
+          pending.forEach((task) => {
+            pendingList.appendChild(createTaskElement(task));
+          });
+
+          completed.forEach((task) => {
+            completedList.appendChild(createTaskElement(task));
+          });
+        }
+
+        // --- Inisialisasi ---
+        taskForm.addEventListener("submit", addTask);
+        loadTasks();
+      });
+    </script>
+  </body>
+</html>
