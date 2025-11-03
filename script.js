@@ -2,7 +2,6 @@ const {
   initializeApp,
   getAuth,
   signInAnonymously,
-  signInWithCustomToken,
   onAuthStateChanged,
   getFirestore,
   doc,
@@ -16,6 +15,18 @@ const {
   Timestamp,
   setLogLevel,
 } = window.firebase;
+
+// --- KONFIGURASI FIREBASE ANDA (dari screenshot) ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDkurarNmpm1tDs0D0nza2ofv2Apes",
+  authDomain: "taskhub-fb8f4.firebaseapp.com",
+  projectId: "taskhub-fb8f4",
+  storageBucket: "taskhub-fb8f4.appspot.com",
+  messagingSenderId: "981022175877",
+  appId: "1:981022175877:web:f0d10170d65a9d8bdc07ec",
+  measurementId: "G-LNEJXJMGH6",
+};
+// ---------------------------------------------
 
 // --- Event Listener Utama ---
 document.addEventListener("DOMContentLoaded", () => {
@@ -83,24 +94,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const completedList = document.getElementById("completed-list");
   const pendingEmpty = document.getElementById("pending-empty");
   const completedEmpty = document.getElementById("completed-empty");
-
   const filterButtons = document.getElementById("filter-buttons");
-
   const deleteModal = document.getElementById("delete-modal");
   const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
   const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
-
   const statsModal = document.getElementById("stats-modal");
   const showStatsBtn = document.getElementById("show-stats-btn");
   const closeStatsBtn = document.getElementById("close-stats-btn");
   const statsContent = document.getElementById("stats-content");
-
   const pomodoroModal = document.getElementById("pomodoro-modal");
   const pomodoroTaskName = document.getElementById("pomodoro-task-name");
   const pomodoroTimerDisplay = document.getElementById("pomodoro-timer");
   const pomodoroStartPause = document.getElementById("pomodoro-start-pause");
   const pomodoroStop = document.getElementById("pomodoro-stop");
-
   const pomodoroSoundSelect = document.getElementById("pomodoro-sound");
   const pomodoroVolumeSlider = document.getElementById("pomodoro-volume");
 
@@ -169,10 +175,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      audioContext.resume(); // Penting untuk browser modern
+      audioContext.resume();
       whiteNoiseNode.start(0);
     } catch (e) {
-      // Menangani error jika node sudah di-start
+      //
     }
   }
 
@@ -201,7 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
-  // --- Akhir Logika Audio ---
 
   // --- Logika CRUD Tugas (Firebase) ---
 
@@ -230,7 +235,6 @@ document.addEventListener("DOMContentLoaded", () => {
           tasks.push({
             id: doc.id,
             ...data,
-            // Konversi Timestamps ke ISO string agar konsisten
             deadline: data.deadline
               ? data.deadline.toDate().toISOString()
               : null,
@@ -270,7 +274,6 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     } else if (deadlineDate) {
       const date = new Date(deadlineDate);
-      // Atur ke akhir hari jika hanya tanggal
       date.setHours(23, 59, 59, 999);
       deadlineTimestamp = Timestamp.fromDate(date);
     }
@@ -315,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         await updateDoc(taskRef, {
           completed: newCompletedStatus,
-          completedAt: newCompletedStatus ? Timestamp.now() : null, // Gunakan Timestamp.now()
+          completedAt: newCompletedStatus ? Timestamp.now() : null,
         });
 
         if (newCompletedStatus && typeof confetti === "function") {
@@ -344,9 +347,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (newValues.deadline.includes("T")) {
         deadlineTimestamp = Timestamp.fromDate(new Date(newValues.deadline));
       } else {
-        // Jika hanya tanggal, atur ke akhir hari
         const date = new Date(newValues.deadline);
-        date.setUTCHours(23, 59, 59, 999); // Gunakan UTC untuk konsistensi
+        date.setUTCHours(23, 59, 59, 999);
         deadlineTimestamp = Timestamp.fromDate(date);
       }
     }
@@ -356,7 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
         name: newValues.name,
         description: newValues.description,
         category: newValues.category,
-        deadline: deadlineTimestamp, // Kirim null jika newValues.deadline kosong
+        deadline: deadlineTimestamp,
       });
     } catch (error) {
       console.error("Error memperbarui tugas:", error);
@@ -403,7 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const startOfWeekDate = new Date(now);
     startOfWeekDate.setDate(
       now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)
-    ); // Mulai dari Senin
+    );
     startOfWeekDate.setHours(0, 0, 0, 0);
 
     const tasksThisWeek = completedTasks.filter(
@@ -414,7 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
       (t) => new Date(t.completedAt) >= startOfToday
     );
 
-    const dayCounts = [0, 0, 0, 0, 0, 0, 0]; // 0=Minggu, 1=Senin, ...
+    const dayCounts = [0, 0, 0, 0, 0, 0, 0];
     const dayNames = [
       "Minggu",
       "Senin",
@@ -478,9 +480,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (pomodoroSecondsRemaining <= 0) {
         clearInterval(pomodoroInterval);
         isPomodoroRunning = false;
-        // Ganti alert dengan sesuatu yang tidak memblokir
         console.log("Waktu fokus selesai! Saatnya istirahat.");
-        // Anda bisa tambahkan notifikasi visual/suara lain di sini
         stopPomodoro();
       }
     }, 1000);
@@ -502,7 +502,6 @@ document.addEventListener("DOMContentLoaded", () => {
     pomodoroTaskName.textContent = taskName;
     pomodoroModal.classList.remove("hidden");
 
-    // Inisialisasi audio saat modal dibuka (user gesture)
     initAudio();
 
     if (isPomodoroRunning) {
@@ -543,7 +542,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     let formattedDate = "";
 
-    // Cek apakah deadline punya komponen waktu
     const hasTimeComponent =
       (deadline.getUTCHours() !== 0 ||
         deadline.getUTCMinutes() !== 0 ||
@@ -553,10 +551,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (hasTimeComponent) {
       options.hour = "2-digit";
       options.minute = "2-digit";
-      options.hour12 = false; // Gunakan format 24 jam
+      options.hour12 = false;
       formattedDate = deadline.toLocaleString("id-ID", options);
     } else {
-      // Jika tidak ada waktu spesifik, anggap akhir hari
       formattedDate = deadline.toLocaleDateString("id-ID", options);
     }
 
@@ -647,7 +644,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const categoryBadge = getCategoryBadge(task.category);
 
     li.innerHTML = `
-      <!-- Bagian Info Tugas (Display) -->
       <div class="task-display w-full">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
               <div class="flex-grow mb-3 sm:mb-0 min-w-0">
@@ -685,7 +681,6 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
       </div>
 
-      <!-- Bagian Edit Tugas (Hidden) -->
       <div class="task-edit hidden w-full space-y-3">
           <input type="text" value="${
             task.name
@@ -747,7 +742,6 @@ document.addEventListener("DOMContentLoaded", () => {
           const deadlineDate = new Date(task.deadline);
           editDateInput.value = deadlineDate.toISOString().split("T")[0];
 
-          // Cek apakah ada komponen waktu
           const hasTimeComponent =
             (deadlineDate.getUTCHours() !== 0 ||
               deadlineDate.getUTCMinutes() !== 0 ||
@@ -794,7 +788,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (newDate && newTime) {
         newDeadline = `${newDate}T${newTime}`;
       } else if (newDate) {
-        newDeadline = newDate; // Hanya tanggal
+        newDeadline = newDate;
       }
 
       updateTask(task.id, {
@@ -830,23 +824,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const aDeadline = a.deadline ? new Date(a.deadline) : null;
       const bDeadline = b.deadline ? new Date(b.deadline) : null;
 
-      if (aDeadline && !bDeadline) return -1; // a punya deadline, b tidak
-      if (!aDeadline && bDeadline) return 1; // b punya deadline, a tidak
+      if (aDeadline && !bDeadline) return -1;
+      if (!aDeadline && bDeadline) return 1;
       if (aDeadline && bDeadline) {
         const diff = aDeadline - bDeadline;
-        if (diff !== 0) return diff; // Urutkan berdasarkan deadline jika berbeda
+        if (diff !== 0) return diff;
       }
 
-      // Jika deadline sama atau tidak ada, urutkan berdasarkan waktu dibuat
       const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return aCreated - bCreated; // Yang lebih lama dibuat, tampil lebih dulu
+      return aCreated - bCreated;
     });
 
     completed.sort((a, b) => {
       const aTime = a.completedAt ? new Date(a.completedAt).getTime() : 0;
       const bTime = b.completedAt ? new Date(b.completedAt).getTime() : 0;
-      return bTime - aTime; // Yang baru selesai, tampil di atas
+      return bTime - aTime;
     });
 
     pendingEmpty.classList.toggle("hidden", pending.length > 0);
@@ -892,46 +885,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Inisialisasi Firebase ---
   function initializeFirebase() {
-    const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
-    let firebaseConfig;
-
     try {
-      if (typeof __firebase_config === "undefined") {
-        throw new Error("Variabel konfigurasi Firebase tidak ditemukan.");
+      if (!firebaseConfig || firebaseConfig.apiKey.startsWith("PASTE_")) {
+        throw new Error(
+          "Variabel firebaseConfig tidak lengkap. Harap paste dari dasbor Firebase."
+        );
       }
-      firebaseConfig = JSON.parse(__firebase_config);
-    } catch (e) {
-      console.error("Gagal mem-parsing konfigurasi Firebase:", e);
-      return;
-    }
 
-    try {
       const app = initializeApp(firebaseConfig);
       db = getFirestore(app);
       auth = getAuth(app);
       setLogLevel("debug");
 
-      handleAuthentication(appId);
+      handleAuthentication();
     } catch (e) {
       console.error("Gagal menginisialisasi Firebase:", e);
+      submitBtn.textContent = "Error: Gagal koneksi";
+      submitBtn.classList.add("bg-red-600");
     }
   }
 
   // --- Autentikasi Firebase ---
-  function handleAuthentication(appId) {
+  function handleAuthentication() {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         userId = user.uid;
         console.log("Pengguna terautentikasi dengan UID:", userId);
 
-        tasksCollectionRef = collection(
-          db,
-          `artifacts/${appId}/users/${userId}/tasks`
-        );
+        tasksCollectionRef = collection(db, `users/${userId}/tasks`);
 
         loadTasks();
         submitBtn.disabled = false;
-        submitBtn.textContent = "Tambah"; // Ubah teks tombol
+        submitBtn.textContent = "Tambah";
       } else {
         console.log("Pengguna tidak terautentikasi, mencoba login...");
         userId = null;
@@ -942,19 +927,14 @@ document.addEventListener("DOMContentLoaded", () => {
         renderTasks();
 
         submitBtn.disabled = true;
-        submitBtn.textContent = "Menghubungkan..."; // Beri tahu pengguna
+        submitBtn.textContent = "Menghubungkan...";
 
         try {
-          if (
-            typeof __initial_auth_token !== "undefined" &&
-            __initial_auth_token
-          ) {
-            await signInWithCustomToken(auth, __initial_auth_token);
-          } else {
-            await signInAnonymously(auth);
-          }
+          await signInAnonymously(auth);
         } catch (error) {
           console.error("Error saat login:", error);
+          submitBtn.textContent = "Error: Gagal login";
+          submitBtn.classList.add("bg-red-600");
         }
       }
     });
