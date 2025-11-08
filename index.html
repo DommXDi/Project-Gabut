@@ -23,47 +23,10 @@
 
     <link rel="stylesheet" href="style.css" />
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-      import {
-        getAuth,
-        signInAnonymously,
-        signInWithCustomToken,
-        onAuthStateChanged,
-      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-      import {
-        getFirestore,
-        doc,
-        addDoc,
-        updateDoc,
-        deleteDoc,
-        onSnapshot,
-        collection,
-        query,
-        serverTimestamp,
-        Timestamp,
-        setLogLevel,
-      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-      window.firebase = {
-        initializeApp,
-        getAuth,
-        signInAnonymously,
-        signInWithCustomToken,
-        onAuthStateChanged,
-        getFirestore,
-        doc,
-        addDoc,
-        updateDoc,
-        deleteDoc,
-        onSnapshot,
-        collection,
-        query,
-        serverTimestamp,
-        Timestamp,
-        setLogLevel,
-      };
-    </script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
   </head>
   <body
     class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white font-sans antialiased transition-colors duration-300"
@@ -360,6 +323,6 @@
       </div>
     </div>
 
-    <script src="script.js" type="module" defer></script>
+    <script src="script.js" defer></script>
   </body>
 </html>
