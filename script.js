@@ -1,14 +1,13 @@
 // Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyDkurarNmpm1tDs0D0nza2ofv2Apes",
-  authDomain: "taskhub-fb8f4.firebaseapp.com",
-  projectId: "taskhub-fb8f4",
-  storageBucket: "taskhub-fb8f4.appspot.com",
-  messagingSenderId: "981022175877",
-  appId: "1:981022175877:web:f0d10170d65a9d8bdc07ec",
-  measurementId: "G-LNEJXJMGH6",
+  apiKey: "AIzaSyDUuranu5eWMPNN1tjDs3D9Or2aF2vApEs",
+  authDomain: "taskhub-f8d94.firebaseapp.com",
+  projectId: "taskhub-f8d94",
+  storageBucket: "taskhub-f8d94.firebasestorage.app",
+  messagingSenderId: "981822175877",
+  appId: "1:981822175877:web:fcd1317869e8b8d8bc07ec",
+  measurementId: "G-LWEJCEW6H5"
 };
-
 // Int Main
 document.addEventListener("DOMContentLoaded", () => {
   // Logika Theme Toggle
@@ -941,3 +940,4 @@ document.addEventListener("DOMContentLoaded", () => {
   //  Mulai inisialisasi Firebase
   initializeFirebase();
 });
+
