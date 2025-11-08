@@ -1,22 +1,4 @@
-const {
-  initializeApp,
-  getAuth,
-  signInAnonymously,
-  onAuthStateChanged,
-  getFirestore,
-  doc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot,
-  collection,
-  query,
-  serverTimestamp,
-  Timestamp,
-  setLogLevel,
-} = window.firebase;
-
-// Config Firebase
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDkurarNmpm1tDs0D0nza2ofv2Apes",
   authDomain: "taskhub-fb8f4.firebaseapp.com",
@@ -27,8 +9,9 @@ const firebaseConfig = {
   measurementId: "G-LNEJXJMGH6",
 };
 
+// Int Main
 document.addEventListener("DOMContentLoaded", () => {
-  // Theme Toggle
+  // Logika Theme Toggle
   const themeToggleBtn = document.getElementById("theme-toggle");
   const themeIconMoon = document.getElementById("theme-icon-moon");
   const themeIconSun = document.getElementById("theme-icon-sun");
@@ -80,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
   themeToggleBtn.addEventListener("click", toggleTheme);
   loadTheme();
 
-  // Variabel Elemen DOM
+  // Variabel Global
   const taskForm = document.getElementById("add-task-form");
   const submitBtn = taskForm.querySelector('button[type="submit"]');
   const taskInput = document.getElementById("task-input");
@@ -108,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const pomodoroSoundSelect = document.getElementById("pomodoro-sound");
   const pomodoroVolumeSlider = document.getElementById("pomodoro-volume");
 
-  // Variabel Aplikasi
+  // Variabel State Aplikasi
   let tasks = [];
   let taskIdToDelete = null;
   let currentFilter = "all";
@@ -122,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let tasksCollectionRef;
   let unsubscribeFromTasks;
 
-  // Audio White Noise untuk Mode Fokus
+  // Audio White Noise untuk Pomodoro
   let audioContext = null;
   let whiteNoiseNode = null;
   let gainNode = null;
@@ -206,7 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Inisialisasi Firebase
+  // Logika CRUD Tugas (Firebase)
 
   function loadTasks() {
     if (unsubscribeFromTasks) {
@@ -220,8 +203,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log("Membuat listener snapshot untuk tasks...");
 
-    unsubscribeFromTasks = onSnapshot(
-      tasksCollectionRef,
+    // Sintaks Compat: .onSnapshot()
+    unsubscribeFromTasks = tasksCollectionRef.onSnapshot(
       (snapshot) => {
         console.log(
           "Snapshot data diterima, jumlah dokumen:",
@@ -267,13 +250,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let deadlineTimestamp = null;
     if (deadlineDate && deadlineTime) {
-      deadlineTimestamp = Timestamp.fromDate(
+      // Sintaks Compat: firebase.firestore.Timestamp
+      deadlineTimestamp = firebase.firestore.Timestamp.fromDate(
         new Date(`${deadlineDate}T${deadlineTime}`)
       );
     } else if (deadlineDate) {
       const date = new Date(deadlineDate);
       date.setHours(23, 59, 59, 999);
-      deadlineTimestamp = Timestamp.fromDate(date);
+      deadlineTimestamp = firebase.firestore.Timestamp.fromDate(date);
     }
 
     const newTask = {
@@ -283,7 +267,8 @@ document.addEventListener("DOMContentLoaded", () => {
       deadline: deadlineTimestamp,
       completed: false,
       completedAt: null,
-      createdAt: serverTimestamp(),
+      // Sintaks Compat: firebase.firestore.FieldValue
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     };
 
     try {
@@ -291,7 +276,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Koleksi tugas belum siap. Coba lagi nanti.");
         return;
       }
-      await addDoc(tasksCollectionRef, newTask);
+      // Sintaks Compat: collectionRef.add()
+      await tasksCollectionRef.add(newTask);
 
       taskInput.value = "";
       descriptionInput.value = "";
@@ -310,13 +296,17 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Koleksi tugas belum siap.");
         return;
       }
-      const taskRef = doc(tasksCollectionRef, id);
+      // Sintaks Compat: collectionRef.doc(id)
+      const taskRef = tasksCollectionRef.doc(id);
       const newCompletedStatus = !task.completed;
 
       try {
-        await updateDoc(taskRef, {
+        // Sintaks Compat: docRef.update()
+        await taskRef.update({
           completed: newCompletedStatus,
-          completedAt: newCompletedStatus ? Timestamp.now() : null,
+          completedAt: newCompletedStatus
+            ? firebase.firestore.Timestamp.now()
+            : null,
         });
 
         if (newCompletedStatus && typeof confetti === "function") {
@@ -338,21 +328,23 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Koleksi tugas belum siap.");
       return;
     }
-    const taskRef = doc(tasksCollectionRef, id);
+    const taskRef = tasksCollectionRef.doc(id);
 
     let deadlineTimestamp = null;
     if (newValues.deadline) {
       if (newValues.deadline.includes("T")) {
-        deadlineTimestamp = Timestamp.fromDate(new Date(newValues.deadline));
+        deadlineTimestamp = firebase.firestore.Timestamp.fromDate(
+          new Date(newValues.deadline)
+        );
       } else {
         const date = new Date(newValues.deadline);
         date.setUTCHours(23, 59, 59, 999);
-        deadlineTimestamp = Timestamp.fromDate(date);
+        deadlineTimestamp = firebase.firestore.Timestamp.fromDate(date);
       }
     }
 
     try {
-      await updateDoc(taskRef, {
+      await taskRef.update({
         name: newValues.name,
         description: newValues.description,
         category: newValues.category,
@@ -363,7 +355,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Hapus Tugas
+  // Logika Hapus Tugas
   function showDeleteModal(id) {
     taskIdToDelete = id;
     deleteModal.classList.remove("hidden");
@@ -380,9 +372,10 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Koleksi tugas belum siap.");
         return;
       }
-      const taskRef = doc(tasksCollectionRef, taskIdToDelete);
+      const taskRef = tasksCollectionRef.doc(taskIdToDelete);
       try {
-        await deleteDoc(taskRef);
+        // Sintaks Compat: docRef.delete()
+        await taskRef.delete();
         hideDeleteModal();
       } catch (error) {
         console.error("Error menghapus tugas:", error);
@@ -393,7 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
   cancelDeleteBtn.addEventListener("click", hideDeleteModal);
   confirmDeleteBtn.addEventListener("click", confirmDelete);
 
-  // Stats
+  // Logika Stats
   function showStatsModal() {
     const completedTasks = tasks.filter((t) => t.completed && t.completedAt);
     const now = new Date();
@@ -456,7 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
   showStatsBtn.addEventListener("click", showStatsModal);
   closeStatsBtn.addEventListener("click", hideStatsModal);
 
-  // Logika Mode Fokus (Pomodoro)
+  // --- Logika Mode Fokus (Pomodoro) ---
   function updateTimerDisplay() {
     const minutes = Math.floor(pomodoroSecondsRemaining / 60);
     const seconds = pomodoroSecondsRemaining % 60;
@@ -517,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   pomodoroStop.addEventListener("click", stopPomodoro);
 
-  // Render
+  // Logika Render
 
   function formatDeadline(deadlineString) {
     if (!deadlineString) {
@@ -702,7 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    // Kolom per tugas
+    // Per tugas
     const taskDisplay = li.querySelector(".task-display");
     const taskEdit = li.querySelector(".task-edit");
     const deleteBtn = li.querySelector(".delete-btn");
@@ -890,10 +883,14 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      const app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-      auth = getAuth(app);
-      setLogLevel("debug");
+      // Sintaks Compat: firebase.initializeApp
+      const app = firebase.initializeApp(firebaseConfig);
+      // Sintaks Compat: firebase.firestore()
+      db = firebase.firestore(app);
+      // Sintaks Compat: firebase.auth()
+      auth = firebase.auth(app);
+      // Sintaks Compat: firebase.firestore.setLogLevel
+      firebase.firestore.setLogLevel("debug");
 
       handleAuthentication();
     } catch (e) {
@@ -905,12 +902,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Autentikasi Firebase
   function handleAuthentication() {
-    onAuthStateChanged(auth, async (user) => {
+    // Sintaks Compat: auth.onAuthStateChanged
+    auth.onAuthStateChanged(async (user) => {
       if (user) {
         userId = user.uid;
         console.log("Pengguna terautentikasi dengan UID:", userId);
 
-        tasksCollectionRef = collection(db, `users/${userId}/tasks`);
+        // Sintaks Compat: db.collection()
+        tasksCollectionRef = db.collection(`users/${userId}/tasks`);
 
         loadTasks();
         submitBtn.disabled = false;
@@ -928,7 +927,8 @@ document.addEventListener("DOMContentLoaded", () => {
         submitBtn.textContent = "Menghubungkan...";
 
         try {
-          await signInAnonymously(auth);
+          // Sintaks Compat: auth.signInAnonymously
+          await auth.signInAnonymously();
         } catch (error) {
           console.error("Error saat login:", error);
           submitBtn.textContent = "Error: Gagal login";
@@ -938,6 +938,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Mulai Aplikasi ---
+  //  Mulai inisialisasi Firebase
   initializeFirebase();
 });
