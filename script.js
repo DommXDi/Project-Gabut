@@ -16,7 +16,7 @@ const {
   setLogLevel,
 } = window.firebase;
 
-// --- KONFIGURASI FIREBASE ANDA (dari screenshot) ---
+// Config Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDkurarNmpm1tDs0D0nza2ofv2Apes",
   authDomain: "taskhub-fb8f4.firebaseapp.com",
@@ -26,11 +26,9 @@ const firebaseConfig = {
   appId: "1:981022175877:web:f0d10170d65a9d8bdc07ec",
   measurementId: "G-LNEJXJMGH6",
 };
-// ---------------------------------------------
 
-// --- Event Listener Utama ---
 document.addEventListener("DOMContentLoaded", () => {
-  // --- Logika Theme Toggle ---
+  // Theme Toggle
   const themeToggleBtn = document.getElementById("theme-toggle");
   const themeIconMoon = document.getElementById("theme-icon-moon");
   const themeIconSun = document.getElementById("theme-icon-sun");
@@ -82,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
   themeToggleBtn.addEventListener("click", toggleTheme);
   loadTheme();
 
-  // --- Variabel Global ---
+  // Variabel Elemen DOM
   const taskForm = document.getElementById("add-task-form");
   const submitBtn = taskForm.querySelector('button[type="submit"]');
   const taskInput = document.getElementById("task-input");
@@ -110,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const pomodoroSoundSelect = document.getElementById("pomodoro-sound");
   const pomodoroVolumeSlider = document.getElementById("pomodoro-volume");
 
-  // --- Variabel State Aplikasi ---
+  // Variabel Aplikasi
   let tasks = [];
   let taskIdToDelete = null;
   let currentFilter = "all";
@@ -118,13 +116,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let pomodoroSecondsRemaining = 25 * 60;
   let isPomodoroRunning = false;
 
-  // --- Variabel Firebase ---
+  // Variabel Firebase
   let db, auth;
   let userId;
   let tasksCollectionRef;
   let unsubscribeFromTasks;
 
-  // --- Logika Audio Pomodoro (White Noise) ---
+  // Audio White Noise untuk Mode Fokus
   let audioContext = null;
   let whiteNoiseNode = null;
   let gainNode = null;
@@ -208,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Logika CRUD Tugas (Firebase) ---
+  // Inisialisasi Firebase
 
   function loadTasks() {
     if (unsubscribeFromTasks) {
@@ -365,7 +363,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Logika Modal Hapus ---
+  // Hapus Tugas
   function showDeleteModal(id) {
     taskIdToDelete = id;
     deleteModal.classList.remove("hidden");
@@ -395,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
   cancelDeleteBtn.addEventListener("click", hideDeleteModal);
   confirmDeleteBtn.addEventListener("click", confirmDelete);
 
-  // --- Logika Modal Statistik ---
+  // Stats
   function showStatsModal() {
     const completedTasks = tasks.filter((t) => t.completed && t.completedAt);
     const now = new Date();
@@ -458,7 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
   showStatsBtn.addEventListener("click", showStatsModal);
   closeStatsBtn.addEventListener("click", hideStatsModal);
 
-  // --- Logika Mode Fokus (Pomodoro) ---
+  // Logika Mode Fokus (Pomodoro)
   function updateTimerDisplay() {
     const minutes = Math.floor(pomodoroSecondsRemaining / 60);
     const seconds = pomodoroSecondsRemaining % 60;
@@ -519,7 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   pomodoroStop.addEventListener("click", stopPomodoro);
 
-  // --- Logika Render ---
+  // Render
 
   function formatDeadline(deadlineString) {
     if (!deadlineString) {
@@ -704,7 +702,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    // --- Event Listener per Tugas ---
+    // Kolom per tugas
     const taskDisplay = li.querySelector(".task-display");
     const taskEdit = li.querySelector(".task-edit");
     const deleteBtn = li.querySelector(".delete-btn");
@@ -854,7 +852,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Event Listener: Filter & Form Submit ---
+  // Filter & Form Submit
   taskForm.addEventListener("submit", addTask);
 
   filterButtons.addEventListener("click", (e) => {
@@ -883,7 +881,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Inisialisasi Firebase ---
+  // Inisialisasi Firebase
   function initializeFirebase() {
     try {
       if (!firebaseConfig || firebaseConfig.apiKey.startsWith("PASTE_")) {
@@ -905,7 +903,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Autentikasi Firebase ---
+  // Autentikasi Firebase
   function handleAuthentication() {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
